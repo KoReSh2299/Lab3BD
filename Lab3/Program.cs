@@ -45,7 +45,9 @@ namespace Lab3
             //dbFiller.InitializeWorkShifts();
             //dbFiller.InitializeParkingSpaces();
             //dbFiller.InitializeTariffs();
-            dbFiller.InitializeDiscounts();
+            //dbFiller.InitializeDiscounts();
+            //dbFiller.InitializePayments();
+            //dbFiller.InitializeWorkShiftsPayments();
 
             //var app = builder.Build();
 

@@ -1,16 +1,12 @@
 ﻿using Lab3.Data;
 using Lab3.Models;
+using System.Collections.Generic;
 
 namespace Lab3
 {
-    public class DbFiller
+    public class DbFiller(KursachContext context)
     {
-        private KursachContext _context;
-
-        public DbFiller(KursachContext context)
-        {
-            _context = context;
-        }
+        private readonly KursachContext _context = context;
 
         public void InitializeWorkShifts()
         {
@@ -121,7 +117,7 @@ namespace Lab3
             _context.SaveChanges();
         }
 
-        public void InitializePaymentsAndParkingRecords()
+        public void InitializePayments()
         {
             try
             {
@@ -134,16 +130,31 @@ namespace Lab3
                 if(tariffs != null && discounts != null && parkingSpaces != null && clients != null && cars != null)
                 {
                     var random = new Random();
-                    var freeSpaces = new HashSet<ParkingSpace>();
-                    var takedSpaces = new Dictionary<ParkingSpace, Car>();
+                    var freeSpaces = new List<ParkingSpace>();
+                    var takedSpaces = new List<ParkingSpace>();
+                    var freeCars = new List<Car>();
+                    var carsInParkingSpace = new List<Car>();
 
 
-                    for(int i = 0; i < parkingSpaces.Count(); i++)
+                    for(int i = 0; i < parkingSpaces.Count; i++)
                     {
-                        if (parkingSpaces[i].IsFree)
+                        if (parkingSpaces[i].Car == null)
+                        {
                             freeSpaces.Add(parkingSpaces[i]);
+                        }
                         else
+                        {
                             takedSpaces.Add(parkingSpaces[i]);
+                            carsInParkingSpace.Add(parkingSpaces[i].Car);
+                        }
+                    }
+
+                    foreach(var car in cars)
+                    {
+                        if(!carsInParkingSpace.Contains(car))
+                        {
+                            freeCars.Add(car);
+                        }
                     }
 
                     var takedSpacesAndTimeToFree = new Dictionary<ParkingSpace, DateTime>();
@@ -152,15 +163,24 @@ namespace Lab3
 
                     var startTime = new DateTime(2024, 9, 1, 0, 0, 0);
                     var endTime = new DateTime(2025, 2, 1, 0, 0, 0);
+                    int lowCountHours = 24;
+                    int highCountHours = 144;
 
                     for(var tempTime = startTime; tempTime < endTime; tempTime = tempTime.AddHours(1))
                     {
-                        foreach(var entity in takedSpacesAndTimeToFree)
+                        for(int i = 0; i < takedSpacesAndTimeToFree.Count; i++) 
                         {
-                            if(tempTime >= entity.Value)
+                            var takedSpace = takedSpacesAndTimeToFree.ElementAt(i);
+
+                            if (tempTime >= takedSpace.Value)
                             {
-                                takedSpaces.Remove(entity.Key);
-                                freeSpaces.Add(entity.Key);
+                                freeCars.Add(takedSpace.Key.Car);
+                                carsInParkingSpace.Remove(takedSpace.Key.Car);
+                                takedSpaces.Remove(takedSpace.Key);
+                                takedSpace.Key.Car = null;
+                                freeSpaces.Add(takedSpace.Key);
+                                takedSpacesAndTimeToFree.Remove(takedSpace.Key);
+                                i--;
                             }
                         }
 
@@ -168,16 +188,153 @@ namespace Lab3
                         {
                             if (freeSpaces.Count > 0)
                             {
-                                if (random.Next(0, 99) < probability)
+                                if (random.Next(0, 101) < probability)
                                 {
+                                    if(random.Next(0, 101) < timeProbability)
+                                    {
+                                        int countHours = random.Next(1, lowCountHours);
+                                        var randomCar = freeCars[random.Next(0, freeCars.Count)];
+                                        var randomPlace = freeSpaces[random.Next(0, freeSpaces.Count)];
 
+
+                                        var payment = new Payment()
+                                        {
+                                            ParkingSpace = randomPlace,
+                                            PaymentDate = tempTime,
+                                            TimeIn = tempTime,
+                                            TimeOut = tempTime.AddHours(countHours)
+                                        };
+
+
+                                        if (randomPlace.IsPenalty)
+                                            payment.Tariff = tariffs[1];
+                                        else
+                                            payment.Tariff = tariffs[0];
+
+                                        if(randomCar.Client.IsRegularClient)
+                                        {
+                                            payment.Discount = discounts[0];
+                                            payment.Amount = countHours * payment.Tariff.Rate * (decimal)(payment.Discount.Percentage / 100.0);
+                                        }
+                                        else
+                                        {
+                                            payment.Discount = null;
+                                            payment.Amount = countHours * payment.Tariff.Rate;
+                                        }
+
+                                        _context.Payments.Add(payment);
+
+                                        freeCars.Remove(randomCar);
+                                        carsInParkingSpace.Add(randomCar);
+                                        freeSpaces.Remove(randomPlace);
+                                        randomPlace.Car = randomCar;
+                                        takedSpaces.Add(randomPlace);
+                                        takedSpacesAndTimeToFree.Add(randomPlace, tempTime.AddHours(countHours));
+                                    }
+                                    else
+                                    {
+                                        int countHours = random.Next(lowCountHours, highCountHours);
+                                        var randomCar = freeCars[random.Next(0, freeCars.Count)];
+                                        var randomPlace = freeSpaces[random.Next(0, freeSpaces.Count)];
+
+                                        var payment = new Payment()
+                                        {
+                                            ParkingSpace = randomPlace,
+                                            PaymentDate = tempTime,
+                                            TimeIn = tempTime,
+                                            TimeOut = tempTime.AddHours(countHours)
+                                        };
+
+
+                                        if (randomPlace.IsPenalty)
+                                            payment.Tariff = tariffs[1];
+                                        else
+                                            payment.Tariff = tariffs[0];
+
+                                        if (countHours >= 72)
+                                        {
+                                            payment.Discount = discounts[1];
+                                            payment.Amount = countHours * payment.Tariff.Rate * (decimal)(payment.Discount.Percentage / 100.0);
+                                        }
+                                        else if (randomCar.Client.IsRegularClient) 
+                                        {
+                                            payment.Discount = discounts[0];
+                                            payment.Amount = countHours * payment.Tariff.Rate * (decimal)(payment.Discount.Percentage / 100.0);
+                                        }
+                                        else
+                                        {
+                                         
+                                            payment.Discount = null;
+                                            payment.Amount = countHours * payment.Tariff.Rate;
+                                        }
+
+                                        _context.Payments.Add(payment);
+
+                                        freeCars.Remove(randomCar);
+                                        carsInParkingSpace.Add(randomCar);
+                                        freeSpaces.Remove(randomPlace);
+                                        randomPlace.Car = randomCar;
+                                        takedSpaces.Add(randomPlace);
+                                        takedSpacesAndTimeToFree.Add(randomPlace, tempTime.AddHours(countHours));
+                                    }
                                 }
+                            }
+                            else
+                            {
+                                break;
                             }
                         }
                     }
+
+                    _context.SaveChanges();
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+
+        public void InitializeWorkShiftsPayments()
+        {
+            try
+            {
+                var workShifts = _context.WorkShifts.ToList();
+                var payments = _context.Payments.ToList();
+
+                if(payments != null && workShifts != null)
+                {
+                    for(int i = 0; i < workShifts.Count; i++)
+                    {
+                        for(int j = 0; j < payments.Count; j++)
+                        {
+                            if ((payments[j].TimeIn >= workShifts[i].ShiftStartTime && payments[j].TimeIn < workShifts[i].ShiftEndTime)
+                             || (payments[j].TimeOut > workShifts[i].ShiftStartTime && payments[j].TimeOut <= workShifts[i].ShiftEndTime)
+                             || (payments[j].TimeIn <= workShifts[i].ShiftStartTime && payments[j].TimeOut >= workShifts[i].ShiftEndTime))
+                            {
+                                var workShiftPayment = new WorkShiftsPayment()
+                                {
+                                    WorkShift = workShifts[i],
+                                    Payment = payments[j]
+                                };
+
+                                _context.WorkShiftsPayments.Add(workShiftPayment);
+                            }
+                            else if (payments[j].TimeOut <= workShifts[i].ShiftStartTime)
+                            {
+                                continue;
+                            }
+                            else
+                            {
+                                break;
+                            }
+                        }
+                    }
+
+                    _context.SaveChanges();
+                }
+            }
+            catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
             }
