@@ -1,5 +1,5 @@
-﻿using Lab2proj.Data;
-using Lab2proj.Models;
+﻿using Lab3.Data;
+using Lab3.Models;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace Lab3.Services

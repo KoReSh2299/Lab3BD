@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Lab2proj.Models;
+namespace Lab3.Models;
 
 public partial class Car
 {
@@ -15,5 +15,5 @@ public partial class Car
 
     public virtual Client Client { get; set; } = null!;
 
-    public virtual ICollection<ParkingRecord> ParkingRecords { get; set; } = new List<ParkingRecord>();
+    public virtual ICollection<ParkingSpace> ParkingSpaces { get; set; } = new List<ParkingSpace>();
 }

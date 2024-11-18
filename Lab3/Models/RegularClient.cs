@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Lab2proj.Models;
+namespace Lab3.Models;
 
 public partial class RegularClient
 {

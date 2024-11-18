@@ -1,17 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Lab2proj.Models;
+namespace Lab3.Models;
 
-public partial class ParkingRecordsWorkShift
+public partial class WorkShiftsPayment
 {
     public int Id { get; set; }
 
     public int WorkShiftId { get; set; }
 
-    public int ParkingRecordId { get; set; }
+    public int PaymentId { get; set; }
 
-    public virtual ParkingRecord ParkingRecord { get; set; } = null!;
+    public virtual Payment Payment { get; set; } = null!;
 
     public virtual WorkShift WorkShift { get; set; } = null!;
 }

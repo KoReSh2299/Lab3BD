@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Lab2proj.Models;
+namespace Lab3.Models;
 
 public partial class Payment
 {
@@ -15,9 +15,17 @@ public partial class Payment
 
     public DateTime? PaymentDate { get; set; }
 
+    public DateTime TimeIn { get; set; }
+
+    public DateTime TimeOut { get; set; }
+
+    public int ParkingSpaceId { get; set; }
+
     public virtual Discount? Discount { get; set; }
 
-    public virtual ICollection<ParkingRecord> ParkingRecords { get; set; } = new List<ParkingRecord>();
+    public virtual ParkingSpace ParkingSpace { get; set; } = null!;
 
     public virtual Tariff? Tariff { get; set; }
+
+    public virtual ICollection<WorkShiftsPayment> WorkShiftsPayments { get; set; } = new List<WorkShiftsPayment>();
 }

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Lab2proj.Models;
+namespace Lab3.Models;
 
 public partial class ParkingSpace
 {
@@ -9,7 +9,9 @@ public partial class ParkingSpace
 
     public bool IsPenalty { get; set; }
 
-    public bool IsFree { get; set; }
+    public int? CarId { get; set; }
 
-    public virtual ICollection<ParkingRecord> ParkingRecords { get; set; } = new List<ParkingRecord>();
+    public virtual Car? Car { get; set; }
+
+    public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
 }

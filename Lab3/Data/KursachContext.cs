@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using Lab2proj.Models;
+using Lab3.Models;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Configuration.Json;
 
-namespace Lab2proj.Data;
+namespace Lab3.Data;
 
 public partial class KursachContext : DbContext
 {
@@ -28,10 +26,6 @@ public partial class KursachContext : DbContext
 
     public virtual DbSet<EmployeeMonthlyShift> EmployeeMonthlyShifts { get; set; }
 
-    public virtual DbSet<ParkingRecord> ParkingRecords { get; set; }
-
-    public virtual DbSet<ParkingRecordsWorkShift> ParkingRecordsWorkShifts { get; set; }
-
     public virtual DbSet<ParkingSpace> ParkingSpaces { get; set; }
 
     public virtual DbSet<Payment> Payments { get; set; }
@@ -42,11 +36,12 @@ public partial class KursachContext : DbContext
 
     public virtual DbSet<WorkShift> WorkShifts { get; set; }
 
-    //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    //{
-    //    string getStringFrom = "DefaultConnection";
-    //    string connectionString = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json").Build().GetConnectionString(getStringFrom);
-    //}
+    public virtual DbSet<WorkShiftsPayment> WorkShiftsPayments { get; set; }
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
+        => optionsBuilder.UseSqlServer("Data Source=LCR\\SQLEXPRESS;Initial Catalog=Kursach;Integrated Security=True;Encrypt=False;Trust Server Certificate=True");
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Car>(entity =>
@@ -119,47 +114,13 @@ public partial class KursachContext : DbContext
                 .IsUnicode(false);
         });
 
-        modelBuilder.Entity<ParkingRecord>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__ParkingR__3214EC07AF4FFF4E");
-
-            entity.Property(e => e.TimeIn).HasColumnType("datetime");
-            entity.Property(e => e.TimeOut).HasColumnType("datetime");
-
-            entity.HasOne(d => d.Car).WithMany(p => p.ParkingRecords)
-                .HasForeignKey(d => d.CarId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__ParkingRe__CarId__797309D9");
-
-            entity.HasOne(d => d.ParkingSpace).WithMany(p => p.ParkingRecords)
-                .HasForeignKey(d => d.ParkingSpaceId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__ParkingRe__Parki__7A672E12");
-
-            entity.HasOne(d => d.Payment).WithMany(p => p.ParkingRecords)
-                .HasForeignKey(d => d.PaymentId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__ParkingRe__Payme__7B5B524B");
-        });
-
-        modelBuilder.Entity<ParkingRecordsWorkShift>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__ParkingR__3214EC073998A83B");
-
-            entity.HasOne(d => d.ParkingRecord).WithMany(p => p.ParkingRecordsWorkShifts)
-                .HasForeignKey(d => d.ParkingRecordId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__ParkingRe__Parki__02FC7413");
-
-            entity.HasOne(d => d.WorkShift).WithMany(p => p.ParkingRecordsWorkShifts)
-                .HasForeignKey(d => d.WorkShiftId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__ParkingRe__WorkS__02084FDA");
-        });
-
         modelBuilder.Entity<ParkingSpace>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__ParkingS__3214EC07A8951081");
+
+            entity.HasOne(d => d.Car).WithMany(p => p.ParkingSpaces)
+                .HasForeignKey(d => d.CarId)
+                .HasConstraintName("FK_ParkingSpaces_Cars");
         });
 
         modelBuilder.Entity<Payment>(entity =>
@@ -168,10 +129,17 @@ public partial class KursachContext : DbContext
 
             entity.Property(e => e.Amount).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.PaymentDate).HasColumnType("datetime");
+            entity.Property(e => e.TimeIn).HasColumnType("datetime");
+            entity.Property(e => e.TimeOut).HasColumnType("datetime");
 
             entity.HasOne(d => d.Discount).WithMany(p => p.Payments)
                 .HasForeignKey(d => d.DiscountId)
                 .HasConstraintName("FK__Payments__Discou__73BA3083");
+
+            entity.HasOne(d => d.ParkingSpace).WithMany(p => p.Payments)
+                .HasForeignKey(d => d.ParkingSpaceId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Payments_ParkingSpaces");
 
             entity.HasOne(d => d.Tariff).WithMany(p => p.Payments)
                 .HasForeignKey(d => d.TariffId)
@@ -219,6 +187,21 @@ public partial class KursachContext : DbContext
                 .HasForeignKey(d => d.EmployeeId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__WorkShift__Emplo__5BE2A6F2");
+        });
+
+        modelBuilder.Entity<WorkShiftsPayment>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__ParkingR__3214EC073998A83B");
+
+            entity.HasOne(d => d.Payment).WithMany(p => p.WorkShiftsPayments)
+                .HasForeignKey(d => d.PaymentId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_WorkShiftsPayments_Payments");
+
+            entity.HasOne(d => d.WorkShift).WithMany(p => p.WorkShiftsPayments)
+                .HasForeignKey(d => d.WorkShiftId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__ParkingRe__WorkS__02084FDA");
         });
 
         OnModelCreatingPartial(modelBuilder);

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Lab2proj.Models;
+namespace Lab3.Models;
 
 public partial class WorkShift
 {
@@ -15,5 +15,5 @@ public partial class WorkShift
 
     public virtual Employee Employee { get; set; } = null!;
 
-    public virtual ICollection<ParkingRecordsWorkShift> ParkingRecordsWorkShifts { get; set; } = new List<ParkingRecordsWorkShift>();
+    public virtual ICollection<WorkShiftsPayment> WorkShiftsPayments { get; set; } = new List<WorkShiftsPayment>();
 }
