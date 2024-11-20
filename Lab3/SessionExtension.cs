@@ -8,7 +8,7 @@ namespace Lab3
     {
         public static void Set<T>(this ISession session, string key, T value)
         {
-            session.Set(key, JsonConvert.SerializeObject(value, new JsonSerializerSettings
+            session.SetString(key, JsonConvert.SerializeObject(value, new JsonSerializerSettings
             {
                 PreserveReferencesHandling = PreserveReferencesHandling.Objects
             }));

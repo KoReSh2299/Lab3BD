@@ -24,13 +24,9 @@ public partial class KursachContext : DbContext
 
     public virtual DbSet<Employee> Employees { get; set; }
 
-    public virtual DbSet<EmployeeMonthlyShift> EmployeeMonthlyShifts { get; set; }
-
     public virtual DbSet<ParkingSpace> ParkingSpaces { get; set; }
 
     public virtual DbSet<Payment> Payments { get; set; }
-
-    public virtual DbSet<RegularClient> RegularClients { get; set; }
 
     public virtual DbSet<Tariff> Tariffs { get; set; }
 
@@ -103,17 +99,6 @@ public partial class KursachContext : DbContext
                 .IsUnicode(false);
         });
 
-        modelBuilder.Entity<EmployeeMonthlyShift>(entity =>
-        {
-            entity
-                .HasNoKey()
-                .ToView("EmployeeMonthlyShifts");
-
-            entity.Property(e => e.FullName)
-                .HasMaxLength(92)
-                .IsUnicode(false);
-        });
-
         modelBuilder.Entity<ParkingSpace>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__ParkingS__3214EC07A8951081");
@@ -144,26 +129,6 @@ public partial class KursachContext : DbContext
             entity.HasOne(d => d.Tariff).WithMany(p => p.Payments)
                 .HasForeignKey(d => d.TariffId)
                 .HasConstraintName("FK__Payments__Tariff__72C60C4A");
-        });
-
-        modelBuilder.Entity<RegularClient>(entity =>
-        {
-            entity
-                .HasNoKey()
-                .ToView("RegularClients");
-
-            entity.Property(e => e.Brand)
-                .HasMaxLength(50)
-                .IsUnicode(false);
-            entity.Property(e => e.FullName)
-                .HasMaxLength(92)
-                .IsUnicode(false);
-            entity.Property(e => e.Number)
-                .HasMaxLength(20)
-                .IsUnicode(false);
-            entity.Property(e => e.Telephone)
-                .HasMaxLength(20)
-                .IsUnicode(false);
         });
 
         modelBuilder.Entity<Tariff>(entity =>

@@ -444,14 +444,7 @@ namespace Lab3
                     "<META http-equiv='Content-Type' content='text/html; charset=utf-8'/>" +
                     "<BODY><FORM action ='/searchform1' method='GET'>" +
                     "Ограничение по сумме платежа:<BR><INPUT type='text' name='AmountRestriction' value='" + payment.Amount + "'><BR>" +
-                    //"Жанр:<BR><SELECT name='GenreId'>";
-                    //foreach (var genre in genres)
-                    //{
-                    //    bool isSelected = genre.GenreId == movie.GenreId;
-                    //    strResponse += $"<OPTION value='{genre.GenreId}' {(isSelected ? "selected" : "")}>{genre.Name}</OPTION>";
-                    //}
-                    //strResponse += "</SELECT><BR>" +
-                    "Платежи:<BR><SELECT name='TariffId'>";
+                    "Тарифы:<BR><SELECT name='TariffId'>";
                     foreach (var tariff in tariffs)
                     {
                         bool isSelected = payment.Tariff == tariff;
@@ -464,7 +457,6 @@ namespace Lab3
                     strResponse += "<BR><A href='/'>Главная</A></BODY></HTML>";
 
 
-
                     if (!string.IsNullOrEmpty(context.Request.Query["AmountRestriction"]))
                         payment.Amount = int.Parse(context.Request.Query["AmountRestriction"]);
                     else
@@ -474,9 +466,6 @@ namespace Lab3
                     {
                         payment.TariffId = tariffId;
                     }
-
-                    //var selectedActorIds = context.Request.Query["Actors"].ToArray();
-                    //movie.Actors = actors20.Where(actor => selectedActorIds.Contains(actor.ActorId.ToString())).ToList();
 
                     var results = new List<Payment>();
 
@@ -513,7 +502,104 @@ namespace Lab3
                     }
                     html += "</body></html>";
 
-                    //context.Session.Set<Payment>("Payment", payment);
+                    context.Session.Set<Payment>("Payment", payment);
+
+                    await context.Response.WriteAsync(strResponse + html);
+                });
+            });
+
+            app.Map("/searchform2", (appBuilder) =>
+            {
+                appBuilder.Run(async (context) =>
+                {
+                    var payment = new Payment();
+
+                    if (context.Request.Cookies.ContainsKey("AmountDestriction"))
+                    {
+                        payment.Amount = int.Parse(context.Request.Cookies["AmountDestriction"]);
+                    }
+
+                    if (context.Request.Cookies.ContainsKey("TariffId"))
+                    {
+                        payment.TariffId = int.Parse(context.Request.Cookies["TariffId"]);
+                    }
+
+                    var paymentsService = context.RequestServices.GetService<ICachedService<Payment>>();
+                    var payments = paymentsService.GetAll().ToList();
+
+                    var tariffsService = context.RequestServices.GetService<ICachedService<Tariff>>();
+                    var tariffs = tariffsService.GetAll().ToList();
+
+                    string strResponse = "<HTML><HEAD><TITLE>Платёж</TITLE></HEAD>" +
+                    "<META http-equiv='Content-Type' content='text/html; charset=utf-8'/>" +
+                    "<BODY><FORM action ='/searchform1' method='GET'>" +
+                    "Ограничение по сумме платежа:<BR><INPUT type='text' name='AmountRestriction' value='" + payment.Amount + "'><BR>" +
+                    "Тарифы:<BR><SELECT name='TariffId'>";
+                    foreach (var tariff in tariffs)
+                    {
+                        bool isSelected = payment.Tariff == tariff;
+                        strResponse += $"<OPTION value='{tariff.Id}' {(isSelected ? "selected" : "")}>{tariff.Description}</OPTION>";
+                    }
+                    strResponse += "</SELECT><BR>" +
+
+                    "<BR><INPUT type='submit' value='Сохранить в Session и найти в базе данных'></FORM>";
+
+                    strResponse += "<BR><A href='/'>Главная</A></BODY></HTML>";
+
+
+
+                    if (!string.IsNullOrEmpty(context.Request.Query["AmountRestriction"]))
+                        payment.Amount = int.Parse(context.Request.Query["AmountRestriction"]);
+                    else
+                        payment.Amount = decimal.MaxValue;
+
+                    if (int.TryParse(context.Request.Query["TariffId"], out int tariffId))
+                    {
+                        payment.TariffId = tariffId;
+                    }
+
+                    var results = new List<Payment>();
+
+                    if (payment != default(Payment))
+                    {
+                        results = payments.Where(p => p.Amount <= payment.Amount && p.TariffId == payment.TariffId).ToList();
+                    }
+
+                    var html = "<!DOCTYPE html><html><head><meta charset='UTF-8'><title>Поиск из бд</title></head><body>";
+                    html += "<h1>Найденные результаты</h1>";
+
+                    if (results.Count > 0)
+                    {
+                        html += "<table border='1' style='border-collapse:collapse'>";
+                        html += "<tr><th>Сумма платежа</th><th>Тариф</th><th>Скидка</th><th>Дата платежа</th><th>Дата въезда автомобиля на стоянку</th><th>Дата выезда автомобиля со стоянки</th><th>Номер парковочного места</th></tr>";
+                        foreach (var pmnt in results)
+                        {
+                            var discount = pmnt.Discount == null ? "Отсутствует" : pmnt.Discount.Description;
+                            html += "<TR>";
+                            html += "<TD>" + pmnt.Amount + "</TD>";
+                            html += "<TD>" + pmnt.Tariff.Description + "</TD>";
+                            html += "<TD>" + discount + "</TD>";
+                            html += "<TD>" + $"{pmnt.PaymentDate.ToShortDateString()} {pmnt.PaymentDate.ToShortTimeString()}" + "</TD>";
+                            html += "<TD>" + $"{pmnt.TimeIn.ToShortDateString()} {pmnt.TimeIn.ToShortTimeString()}" + "</TD>";
+                            html += "<TD>" + $"{pmnt.TimeOut.ToShortDateString()} {pmnt.TimeOut.ToShortTimeString()}" + "</TD>";
+                            html += "<TD>" + pmnt.ParkingSpaceId + "</TD>";
+                            html += "</TR>";
+                        }
+                        html += "</table>";
+                    }
+                    else
+                    {
+                        html += "<p>Ничего не найдено.</p>";
+                    }
+                    html += "</body></html>";
+
+                    var cookieOptions = new CookieOptions
+                    {
+                        Expires = DateTimeOffset.UtcNow.AddSeconds(254)
+                    };
+
+                    context.Response.Cookies.Append("AmountRestriction", payment.Amount.ToString(), cookieOptions);
+                    context.Response.Cookies.Append("TariffId", payment.TariffId.ToString(), cookieOptions);
 
                     await context.Response.WriteAsync(strResponse + html);
                 });
