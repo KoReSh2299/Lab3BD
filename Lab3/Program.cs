@@ -83,7 +83,7 @@ namespace Lab3
                     "<BODY><H1>Список автомобилей</H1>" +
                     "<TABLE BORDER=1>";
                     HtmlString += "<TR>";
-                    HtmlString += "<TH>Брэнд</TH>";
+                    HtmlString += "<TH>Бренд</TH>";
                     HtmlString += "<TH>Номер</TH>";
                     HtmlString += "<TH>ФИО клиента</TH>";
                     HtmlString += "</TR>";
@@ -514,14 +514,22 @@ namespace Lab3
                 {
                     var payment = new Payment();
 
-                    if (context.Request.Cookies.ContainsKey("AmountDestriction"))
+                    if (context.Request.Cookies.ContainsKey("AmountRestriction"))
                     {
-                        payment.Amount = int.Parse(context.Request.Cookies["AmountDestriction"]);
+                        payment.Amount = int.Parse(context.Request.Cookies["AmountRestriction"]);
+                    }
+                    else
+                    {
+                        payment.Amount = 0;
                     }
 
                     if (context.Request.Cookies.ContainsKey("TariffId"))
                     {
                         payment.TariffId = int.Parse(context.Request.Cookies["TariffId"]);
+                    }
+                    else
+                    {
+                        payment.TariffId = 1;
                     }
 
                     var paymentsService = context.RequestServices.GetService<ICachedService<Payment>>();
@@ -532,7 +540,7 @@ namespace Lab3
 
                     string strResponse = "<HTML><HEAD><TITLE>Платёж</TITLE></HEAD>" +
                     "<META http-equiv='Content-Type' content='text/html; charset=utf-8'/>" +
-                    "<BODY><FORM action ='/searchform1' method='GET'>" +
+                    "<BODY><FORM action ='/searchform2' method='GET'>" +
                     "Ограничение по сумме платежа:<BR><INPUT type='text' name='AmountRestriction' value='" + payment.Amount + "'><BR>" +
                     "Тарифы:<BR><SELECT name='TariffId'>";
                     foreach (var tariff in tariffs)
@@ -547,16 +555,11 @@ namespace Lab3
                     strResponse += "<BR><A href='/'>Главная</A></BODY></HTML>";
 
 
-
                     if (!string.IsNullOrEmpty(context.Request.Query["AmountRestriction"]))
                         payment.Amount = int.Parse(context.Request.Query["AmountRestriction"]);
-                    else
-                        payment.Amount = decimal.MaxValue;
 
                     if (int.TryParse(context.Request.Query["TariffId"], out int tariffId))
-                    {
                         payment.TariffId = tariffId;
-                    }
 
                     var results = new List<Payment>();
 
@@ -593,13 +596,13 @@ namespace Lab3
                     }
                     html += "</body></html>";
 
-                    var cookieOptions = new CookieOptions
+                    var cookieoptions = new CookieOptions
                     {
                         Expires = DateTimeOffset.UtcNow.AddSeconds(254)
                     };
 
-                    context.Response.Cookies.Append("AmountRestriction", payment.Amount.ToString(), cookieOptions);
-                    context.Response.Cookies.Append("TariffId", payment.TariffId.ToString(), cookieOptions);
+                    context.Response.Cookies.Append("AmountRestriction", payment.Amount.ToString(), cookieoptions);
+                    context.Response.Cookies.Append("TariffId", payment.TariffId.ToString(), cookieoptions);
 
                     await context.Response.WriteAsync(strResponse + html);
                 });
