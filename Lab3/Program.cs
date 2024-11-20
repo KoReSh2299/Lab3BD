@@ -1,11 +1,6 @@
 using Lab3.Data;
 using Lab3.Models;
 using Lab3.Services;
-using Microsoft.AspNetCore.Html;
-using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using System.Net.Sockets;
 
 namespace Lab3
 {
@@ -32,19 +27,6 @@ namespace Lab3
             services.AddScoped<ICachedService<Payment>, CachedPaymentsService>();
             services.AddScoped<ICachedService<Tariff>, CachedTariffsService>();
             services.AddScoped<ICachedService<WorkShift>, CachedWorkShiftsService>();
-
-            //var optionsBuilder = new DbContextOptionsBuilder<KursachContext>();
-            //optionsBuilder.UseSqlServer("Data Source=LCR\\SQLEXPRESS;Database=Kursach;Integrated Security=True;Connect Timeout=30;Encrypt=True;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False");
-
-            //using var dbContext = new KursachContext(optionsBuilder.Options);
-
-            //var dbFiller = new DbFiller(dbContext);
-            //dbFiller.InitializeWorkShifts();
-            //dbFiller.InitializeParkingSpaces();
-            //dbFiller.InitializeTariffs();
-            //dbFiller.InitializeDiscounts();
-            //dbFiller.InitializePayments();
-            //dbFiller.InitializeWorkShiftsPayments();
 
             var app = builder.Build();
 
