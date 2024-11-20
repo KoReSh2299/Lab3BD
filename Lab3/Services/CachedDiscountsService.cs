@@ -29,7 +29,7 @@ namespace Lab3.Services
 
         public bool TryGetFromCache(string cacheKey, out IEnumerable<Discount> values)
         {
-            return TryGetFromCache(cacheKey, out values);
+            return _memoryCache.TryGetValue(cacheKey, out values);
         }
     }
 }

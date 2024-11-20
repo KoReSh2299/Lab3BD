@@ -214,7 +214,7 @@ namespace Lab3
                                         if(randomCar.Client.IsRegularClient)
                                         {
                                             payment.Discount = discounts[0];
-                                            payment.Amount = countHours * payment.Tariff.Rate * (decimal)(payment.Discount.Percentage / 100.0);
+                                            payment.Amount = countHours * payment.Tariff.Rate * (decimal)(1 - (payment.Discount.Percentage / 100.0));
                                         }
                                         else
                                         {
@@ -254,12 +254,12 @@ namespace Lab3
                                         if (countHours >= 72)
                                         {
                                             payment.Discount = discounts[1];
-                                            payment.Amount = countHours * payment.Tariff.Rate * (decimal)(payment.Discount.Percentage / 100.0);
+                                            payment.Amount = countHours * payment.Tariff.Rate * (decimal)(1 - (payment.Discount.Percentage / 100.0));
                                         }
                                         else if (randomCar.Client.IsRegularClient) 
                                         {
                                             payment.Discount = discounts[0];
-                                            payment.Amount = countHours * payment.Tariff.Rate * (decimal)(payment.Discount.Percentage / 100.0);
+                                            payment.Amount = countHours * payment.Tariff.Rate * (decimal)(1 - (payment.Discount.Percentage / 100.0));
                                         }
                                         else
                                         {
